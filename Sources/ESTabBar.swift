@@ -234,20 +234,25 @@ internal extension ESTabBar /* Layout */ {
 
         if layoutBaseSystem {
             // System itemPositioning
-            if tabBarButtons.count >= containers.count {
+            // Check if we have usable tabBarButton frames (iOS 18+ may have
+            // zero-frame buttons or no UITabBarButton instances at all)
+            let hasUsableButtonFrames = tabBarButtons.count >= containers.count
+                && tabBarButtons.prefix(containers.count).contains(where: { !$0.frame.isEmpty })
+            if hasUsableButtonFrames {
                 for (idx, container) in containers.enumerated(){
                     if !tabBarButtons[idx].frame.isEmpty {
                         container.frame = tabBarButtons[idx].frame
                     }
                 }
-            } else if !containers.isEmpty {
-                // Fallback: UITabBarButton not available (iOS 18+),
+            } else if !containers.isEmpty && bounds.size.width > 0 {
+                // Fallback: UITabBarButton frames not available (iOS 18+),
                 // distribute containers evenly across the tab bar width
                 let width = bounds.size.width
-                let height = bounds.size.height
+                let tabBarContentHeight: CGFloat = 49.0
+                let y = bounds.size.height - tabBarContentHeight
                 let eachWidth = width / CGFloat(containers.count)
                 for (idx, container) in containers.enumerated() {
-                    container.frame = CGRect(x: eachWidth * CGFloat(idx), y: 0, width: eachWidth, height: height)
+                    container.frame = CGRect(x: eachWidth * CGFloat(idx), y: y, width: eachWidth, height: tabBarContentHeight)
                 }
             }
         } else {
