@@ -191,11 +191,11 @@ internal extension ESTabBar /* Layout */ {
             if let cls = NSClassFromString("UITabBarButton") {
                 return subview.isKind(of: cls)
             }
-            return subview is UIControl && !(subview is ESTabBar)
+            return false
             } .sorted { (subview1, subview2) -> Bool in
                 return subview1.frame.origin.x < subview2.frame.origin.x
         }
-        
+
         if isCustomizing {
             for (idx, _) in tabBarItems.enumerated() {
                 guard idx < tabBarButtons.count else { break }
@@ -234,10 +234,20 @@ internal extension ESTabBar /* Layout */ {
 
         if layoutBaseSystem {
             // System itemPositioning
-            for (idx, container) in containers.enumerated(){
-                guard idx < tabBarButtons.count else { break }
-                if !tabBarButtons[idx].frame.isEmpty {
-                    container.frame = tabBarButtons[idx].frame
+            if tabBarButtons.count >= containers.count {
+                for (idx, container) in containers.enumerated(){
+                    if !tabBarButtons[idx].frame.isEmpty {
+                        container.frame = tabBarButtons[idx].frame
+                    }
+                }
+            } else if !containers.isEmpty {
+                // Fallback: UITabBarButton not available (iOS 18+),
+                // distribute containers evenly across the tab bar width
+                let width = bounds.size.width
+                let height = bounds.size.height
+                let eachWidth = width / CGFloat(containers.count)
+                for (idx, container) in containers.enumerated() {
+                    container.frame = CGRect(x: eachWidth * CGFloat(idx), y: 0, width: eachWidth, height: height)
                 }
             }
         } else {
