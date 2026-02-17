@@ -191,13 +191,14 @@ internal extension ESTabBar /* Layout */ {
             if let cls = NSClassFromString("UITabBarButton") {
                 return subview.isKind(of: cls)
             }
-            return false
+            return subview is UIControl && !(subview is ESTabBar)
             } .sorted { (subview1, subview2) -> Bool in
                 return subview1.frame.origin.x < subview2.frame.origin.x
         }
         
         if isCustomizing {
             for (idx, _) in tabBarItems.enumerated() {
+                guard idx < tabBarButtons.count else { break }
                 tabBarButtons[idx].isHidden = false
                 moreContentView?.isHidden = true
             }
@@ -206,6 +207,7 @@ internal extension ESTabBar /* Layout */ {
             }
         } else {
             for (idx, item) in tabBarItems.enumerated() {
+                guard idx < tabBarButtons.count else { break }
                 if let _ = item as? ESTabBarItem {
                     tabBarButtons[idx].isHidden = true
                 } else {
@@ -219,7 +221,7 @@ internal extension ESTabBar /* Layout */ {
                 container.isHidden = false
             }
         }
-        
+
         var layoutBaseSystem = true
         if let itemCustomPositioning = itemCustomPositioning {
             switch itemCustomPositioning {
@@ -229,10 +231,11 @@ internal extension ESTabBar /* Layout */ {
                 layoutBaseSystem = false
             }
         }
-        
+
         if layoutBaseSystem {
             // System itemPositioning
             for (idx, container) in containers.enumerated(){
+                guard idx < tabBarButtons.count else { break }
                 if !tabBarButtons[idx].frame.isEmpty {
                     container.frame = tabBarButtons[idx].frame
                 }
